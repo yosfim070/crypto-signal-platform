@@ -13,7 +13,6 @@ export default defineConfig({
     },
     triggers: [
       triggers.scheduled({ schedule: "*/1 * * * *" }),
-      triggers.scheduled({ schedule: "*/5 * * * *" }),
     ],
     observability: {
       enabled: true,

@@ -1,6 +1,6 @@
 import handler from "vinext/server/fetch-handler";
 import { getConfig } from "../src/lib/config";
-import { scanMarket, trackSignals } from "../src/lib/engine/runner";
+import { scanMarket, state, trackSignals } from "../src/lib/engine/runner";
 
 type HyperdriveBinding = { connectionString: string };
 type Env = { HYPERDRIVE: HyperdriveBinding };
@@ -27,11 +27,14 @@ export default {
     attachBindings(env);
 
     const job = (async () => {
-      // Track open signals every minute. Run the market scanner every five
-      // minutes, respecting the engine-enabled setting in the admin panel.
-      if (controller.cron === "*/5 * * * *") {
-        const config = await getConfig();
-        if (config.engine.engineEnabled) await scanMarket();
+      // Track open signals every minute. Respect the configured scan interval
+      // instead of hard-coding the engine to a five-minute cadence.
+      const config = await getConfig();
+      if (
+        config.engine.engineEnabled &&
+        Date.now() - state.lastScanAt >= config.engine.scanIntervalSec * 1000
+      ) {
+        await scanMarket();
       }
       await trackSignals();
     })();
