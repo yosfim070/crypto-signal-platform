@@ -3,7 +3,9 @@
   "name": "crypto-signal-platform",
   "main": "./custom-worker.ts",
   "compatibility_date": "2026-11-20",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "vars": {
     "CF_WORKER": "1"
   },
@@ -18,9 +20,18 @@
     }
   ],
   "triggers": {
-    "crons": ["* * * * *"]
+    "crons": [
+      "* * * * *"
+    ]
   },
   "observability": {
     "enabled": true
+  },
+  "secrets": {
+    "required": [
+      "DATABASE_URL",
+      "ADMIN_PASSWORD",
+      "ADMIN_SESSION_SECRET"
+    ]
   }
 }
