@@ -21,7 +21,10 @@
     "next": "16.4.2",
     "pg": "8.20.0",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "vinext": "latest",
+    "@vinext/cloudflare": "latest",
+    "react-server-dom-webpack": "latest"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "beta",
@@ -31,7 +34,6 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-rsc": "latest",
-    "@vinext/cloudflare": "latest",
     "cf": "latest",
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
@@ -40,7 +42,7 @@
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
     "vite": "latest",
-    "vinext": "latest",
-    "@tailwindcss/vite": "latest"
+    "@tailwindcss/vite": "latest",
+    "@vitejs/plugin-react": "latest"
   }
 }
