@@ -1,6 +1,6 @@
 import { bindings, defineConfig, triggers } from "cf/config";
 
-export default defineConfig({
+export default defineConfig(({ isPreview }) => ({
   accountId: "2e6ae355cdc86fd94f7f3795cde543ce",
   worker: {
     name: "crypto-signal-platform",
@@ -11,12 +11,18 @@ export default defineConfig({
         id: "42cd24d6c9a04236aa8c0039c7ca2637",
       }),
     },
-    triggers: [
-      triggers.scheduled({ schedule: "*/1 * * * *" }),
-    ],
+    // Cron schedules are production-only. Cloudflare Preview uploads
+    // reject trigger definitions, and Preview does not execute scheduled().
+    ...(isPreview
+      ? {}
+      : {
+          triggers: [
+            triggers.scheduled({ schedule: "*/1 * * * *" }),
+          ],
+        }),
     observability: {
       enabled: true,
       traces: { enabled: true },
     },
   },
-});
+}));
