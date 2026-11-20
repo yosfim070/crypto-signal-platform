@@ -5,19 +5,38 @@ type ScheduledExecutionContext = {
   waitUntil(promise: Promise<unknown>): void;
 };
 
+type WorkerEnvironment = {
+  ADMIN_SESSION_SECRET?: string;
+};
+
 export default {
   fetch: handler.fetch,
 
   async scheduled(
     _controller: { cron: string; scheduledTime: number },
-    _env: unknown,
+    env: WorkerEnvironment,
     ctx: ScheduledExecutionContext,
   ) {
-    const task = import("./src/lib/engine/runner")
-      .then(({ runScheduledTasks }) => runScheduledTasks())
-      .catch((error) => {
-        console.error("[scheduled-engine]", error instanceof Error ? error.message : error);
-      });
+    const secret = env.ADMIN_SESSION_SECRET;
+    if (!secret) {
+      console.error("[scheduled-engine] ADMIN_SESSION_SECRET is not configured");
+      return;
+    }
+
+    // Invoke an internal Next.js route so the engine code is bundled by
+    // Next/OpenNext (including its tsconfig path aliases).
+    const request = new Request("https://internal-worker/api/internal/scheduled", {
+      method: "POST",
+      headers: { authorization: `Bearer ${secret}` },
+    });
+
+    const task = handler.fetch(request, env, ctx).then(async (response: Response) => {
+      if (!response.ok) {
+        console.error("[scheduled-engine] Internal task failed:", response.status, await response.text());
+      }
+    }).catch((error: unknown) => {
+      console.error("[scheduled-engine]", error instanceof Error ? error.message : error);
+    });
 
     ctx.waitUntil(task);
   },
