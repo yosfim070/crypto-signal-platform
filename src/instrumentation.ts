@@ -1,6 +1,5 @@
 export async function register() {
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { startScheduler } = await import("@/lib/engine/runner");
-    startScheduler();
-  }
+  // Cloudflare Workers do not provide a persistent process for setInterval.
+  // Production engine work is invoked by Cron Triggers in worker/index.ts.
+  // Keep instrumentation side-effect free so builds and request startup are safe.
 }

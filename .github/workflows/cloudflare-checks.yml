@@ -1,0 +1,24 @@
+name: Cloudflare migration checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [cloudflare-workers-migration]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Generate Cloudflare binding types
+        run: npx cf workers types
+      - name: Type-check
+        run: npm run typecheck
+      - name: Build Cloudflare Worker
+        run: npm run build:vinext
