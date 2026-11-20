@@ -1,11 +1,15 @@
-﻿node_modules/
+node_modules/
 .next/
+.open-next/
+.wrangler/
 out/
 dist/
 build/
 .env
 .env.*
 !.env.example
+.dev.vars*
+worker-configuration.d.ts
 .DS_Store
 *.log
 .netlify/
