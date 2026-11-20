@@ -248,3 +248,25 @@ export function startScheduler() {
     10_000,
   );
 }
+
+/** Run one bounded engine cycle from a platform scheduler (Cloudflare Cron). */
+export async function runScheduledTasks() {
+  await ensureSeed();
+  await trackSignals();
+
+  const cfg = await getConfig(true);
+  if (!cfg.engine.engineEnabled) return;
+
+  // Persisted run timestamps make the configured scan interval survive Worker
+  // isolate restarts; in-memory timers are not reliable in serverless Workers.
+  const [lastRun] = await db
+    .select({ startedAt: engineRuns.startedAt })
+    .from(engineRuns)
+    .orderBy(desc(engineRuns.id))
+    .limit(1);
+
+  const scanIntervalMs = Math.max(60, cfg.engine.scanIntervalSec) * 1000;
+  if (!lastRun || Date.now() - lastRun.startedAt.getTime() >= scanIntervalMs) {
+    await scanMarket();
+  }
+}

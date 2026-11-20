@@ -2,9 +2,13 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 const databaseUrl = process.env.DATABASE_URL;
+const isNextBuild = process.env.NEXT_PHASE === "phase-production-build";
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
+// Next.js evaluates route modules while collecting build metadata. Do not
+// require production secrets during this phase; the Worker still requires
+// DATABASE_URL before it can serve database-backed requests.
+if (!databaseUrl && !isNextBuild) {
+  throw new Error("DATABASE_URL is required at runtime");
 }
 
 const globalForDb = globalThis as typeof globalThis & {
@@ -13,12 +17,13 @@ const globalForDb = globalThis as typeof globalThis & {
 
 export const pool =
   globalForDb.__arenaNextJsPostgresqlPool ??
-  new Pool({
-    connectionString: databaseUrl,
-  });
+  new Pool(
+    databaseUrl
+      ? { connectionString: databaseUrl, max: 5 }
+      : { max: 1 },
+  );
 
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.__arenaNextJsPostgresqlPool = pool;
-}
+// Reuse the pool within a Worker isolate / Node.js process.
+globalForDb.__arenaNextJsPostgresqlPool = pool;
 
 export const db = drizzle(pool);
