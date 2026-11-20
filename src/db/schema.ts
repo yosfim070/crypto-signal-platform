@@ -26,7 +26,7 @@ export const settings = pgTable("settings", {
 });
 
 export const signals = pgTable(
-  "signals",
+  "signals_v2",
   {
     id: serial("id").primaryKey(),
     symbol: text("symbol").notNull(),
