@@ -28,9 +28,10 @@ function getDatabase() {
     globalThis.__cryptoSignalPool ??
     new Pool({
       connectionString,
-      // Hyperdrive manages the origin-side pool. Keep the per-isolate client
-      // pool small so Worker scaling does not create unnecessary connections.
-      max: 1,
+      // Hyperdrive manages the origin-side pool. Allow a small amount of
+      // per-isolate concurrency so parallel API requests do not queue behind
+      // a single PostgreSQL client and hit the connection timeout.
+      max: 5,
       connectionTimeoutMillis: 10_000,
       idleTimeoutMillis: 30_000,
     });
