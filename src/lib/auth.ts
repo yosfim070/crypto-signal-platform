@@ -4,9 +4,10 @@ import { cookies } from "next/headers";
 export const ADMIN_COOKIE = "mr_admin";
 const TTL_MS = 12 * 3600 * 1000;
 
-export const adminPassword = () => process.env.ADMIN_PASSWORD || "admin12345";
+// Fail closed: never ship a known default administrator password.
+export const adminPassword = () => process.env.ADMIN_PASSWORD || "";
 export const isDefaultPassword = () => !process.env.ADMIN_PASSWORD;
-const secret = () => process.env.ADMIN_SESSION_SECRET || `mr-session:${adminPassword()}`;
+const secret = () => process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || "missing-admin-secret";
 const sign = (payload: string) => crypto.createHmac("sha256", secret()).update(payload).digest("hex");
 
 export function makeToken() {
@@ -15,7 +16,7 @@ export function makeToken() {
 }
 
 export function verifyToken(token: string | undefined): boolean {
-  if (!token) return false;
+  if (!token || !adminPassword()) return false;
   const [payload, sig] = token.split(".");
   if (!payload || !sig) return false;
   const expected = sign(payload);
@@ -26,8 +27,10 @@ export function verifyToken(token: string | undefined): boolean {
 }
 
 export function checkPassword(pw: string): boolean {
+  const configured = adminPassword();
+  if (!configured) return false;
   const a = crypto.createHash("sha256").update(pw).digest();
-  const b = crypto.createHash("sha256").update(adminPassword()).digest();
+  const b = crypto.createHash("sha256").update(configured).digest();
   return crypto.timingSafeEqual(a, b);
 }
 
